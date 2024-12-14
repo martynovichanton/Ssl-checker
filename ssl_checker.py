@@ -13,19 +13,6 @@ WORKERS_COUNT = multiprocessing.cpu_count()
 SOCKET_CONNECTION_TIMEOUT = 2
 DAYS_THRESHOLD = 30
 
-def pluralise(singular, count):
-    return f"{count} {singular}{'' if count == 1 else 's'}"
-
-def format_time_remaining(time_remaining):
-    day_count = time_remaining.days
-    seconds_per_minute = 60
-    seconds_per_hour = seconds_per_minute * 60
-    seconds_count = time_remaining.seconds
-    hours = int(seconds_count / seconds_per_hour)
-    seconds_count -= hours * seconds_per_hour
-    minutes = int(seconds_count / seconds_per_minute)
-    return f"{pluralise('day', day_count)} {pluralise('hour', hours)} {pluralise('min', minutes)}"
-
 def get_certificate_time(context, host):
     h = host.split(":")[0]
     p = host.split(":")[1]
@@ -80,6 +67,20 @@ def check_certificates_all(hostnames_filename):
             except Exception as e:
                 print(f'{host} ERROR {e}')
                 log_file.write(print(f'{host} ERROR {e}\n'))
+
+
+def pluralise(singular, count):
+    return f"{count} {singular}{'' if count == 1 else 's'}"
+
+def format_time_remaining(time_remaining):
+    day_count = time_remaining.days
+    seconds_per_minute = 60
+    seconds_per_hour = seconds_per_minute * 60
+    seconds_count = time_remaining.seconds
+    hours = int(seconds_count / seconds_per_hour)
+    seconds_count -= hours * seconds_per_hour
+    minutes = int(seconds_count / seconds_per_minute)
+    return f"{pluralise('day', day_count)} {pluralise('hour', hours)} {pluralise('min', minutes)}"
 
 def main():
     start = time.perf_counter()
