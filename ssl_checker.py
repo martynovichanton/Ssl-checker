@@ -25,7 +25,7 @@ def get_result(result_func, log_file, host, context=False):
         log_file.write(f'{line}\n')
     except Exception as e:
         print(f'{host} ERROR {e}')
-        log_file.write(print(f'{host} ERROR {e}\n'))
+        log_file.write(f'{host} ERROR {e}\n')
 
 def get_certificate_time(context, host):
     h = host.split(":")[0]
@@ -35,7 +35,7 @@ def get_certificate_time(context, host):
             ip = socket.gethostbyname(h)
             certificate_info = ssl_session.getpeercert()
             exp_date_text = certificate_info['notAfter']
-            date = datetime.strptime(exp_date_text, f'%b %d %H:%M:%S %Y %Z')
+            date = datetime.strptime(exp_date_text, r'%b %d %H:%M:%S %Y %Z')
             # print(certificate_info)
             # print(exp_date_text)
             # print(date)
@@ -48,7 +48,7 @@ def get_certificate_time(context, host):
 def check_certificates_all(hostnames_filename):
     hostnames_file = open(hostnames_filename, "r")
     hostnames = hostnames_file.read().splitlines()
-    now = datetime.now().strftime("Y-%m-%d-%H-%M-%S")
+    now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     log_file = open(f"output/log_{now}.txt", "w")
     context = ssl.create_default_context()
     endpoint_count = len(hostnames)
@@ -69,7 +69,7 @@ def check_certificates_all(hostnames_filename):
                     log_file.write(f'{line}\n')
                 except Exception as e:
                     print(f'{host} ERROR {e}')
-                    log_file.write(print(f'{host} ERROR {e}\n'))
+                    log_file.write(f'{host} ERROR {e}\n')
     else: 
         for host in hostnames:
             try:
@@ -80,7 +80,7 @@ def check_certificates_all(hostnames_filename):
                 log_file.write(f'{line}\n')
             except Exception as e:
                 print(f'{host} ERROR {e}')
-                log_file.write(print(f'{host} ERROR {e}\n'))
+                log_file.write(f'{host} ERROR {e}\n')
 
     #######################
     #######################
