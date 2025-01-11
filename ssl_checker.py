@@ -46,6 +46,9 @@ def get_certificate_time(context, host):
             return {"days_remaining":days_remaining, "time_remaining_txt":time_remaining_txt, "date":date, "ip":ip}
         
 def check_certificates_all(hostnames_filename):
+    # printing the output as_completed
+    # writing to the file in order
+
     hostnames_file = open(hostnames_filename, "r")
     hostnames = hostnames_file.read().splitlines()
     now = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
@@ -55,36 +58,38 @@ def check_certificates_all(hostnames_filename):
     print(f"[*] Checking {pluralise('endpoint', endpoint_count)}")
     log_file.write(f"[*] Checking {pluralise('endpoint', endpoint_count)}\n")
 
-    if RUN_MULTITHREADING:
-        with ThreadPoolExecutor(max_workers=WORKERS_COUNT) as executor:
-            future_list = {executor.submit(get_certificate_time, context, host): host for host in hostnames}
-            # print(future_list)
-            for future in as_completed(future_list):
-                host = future_list[future]
-                try:
-                    result = future.result()
-                    days_remaining, time_remaining_txt, date, ip = result.values()
-                    line = f"{host} {ip} {'WARN' if days_remaining < DAYS_THRESHOLD else 'OK'} {time_remaining_txt} {date}"
-                    print(line)
-                    log_file.write(f'{line}\n')
-                except Exception as e:
-                    print(f'{host} ERROR {e}')
-                    log_file.write(f'{host} ERROR {e}\n')
-    else: 
+    results = [""] * endpoint_count
+
+    with ThreadPoolExecutor(max_workers=WORKERS_COUNT) as executor:
+        # future_list = {executor.submit(get_certificate_time, context, host): host for host in hostnames}
+        # print(future_list)
+
+        future_list = {}
+        index = 0
         for host in hostnames:
+            future_list[executor.submit(get_certificate_time, context, host)] = {'host':host, 'index':index}
+            index += 1
+        # print(future_list)
+
+        for future in as_completed(future_list):
+            host = future_list[future]['host']
+            index = future_list[future]['index']
             try:
-                result = get_certificate_time(context, host)
+                result = future.result()
                 days_remaining, time_remaining_txt, date, ip = result.values()
                 line = f"{host} {ip} {'WARN' if days_remaining < DAYS_THRESHOLD else 'OK'} {time_remaining_txt} {date}"
                 print(line)
-                log_file.write(f'{line}\n')
+                results[index] = line
             except Exception as e:
-                print(f'{host} ERROR {e}')
-                log_file.write(f'{host} ERROR {e}\n')
+                line = f'{host} ERROR {e}'
+                results[index] = line
 
-    #######################
-    #######################
-    #######################
+        for line in results:
+            # print(line)
+            log_file.write(f'{line}\n')
+
+
+
 
     # if RUN_MULTITHREADING:
     #     with ThreadPoolExecutor(max_workers=WORKERS_COUNT) as executor:
@@ -96,6 +101,7 @@ def check_certificates_all(hostnames_filename):
     # else: 
     #     for host in hostnames:
     #         get_result(get_certificate_time, log_file, host, context)
+
 
 
 def pluralise(singular, count):
